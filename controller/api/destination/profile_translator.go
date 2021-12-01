@@ -40,7 +40,7 @@ func (pt *profileTranslator) Update(profile *sp.ServiceProfile) {
 		pt.stream.Send(pt.defaultServiceProfile())
 		return
 	}
-	destinationProfile, err := pt.toServiceProfile(profile)
+	destinationProfile, err := pt.toDestinationProfile(profile)
 	if err != nil {
 		pt.log.Error(err)
 		return
@@ -78,9 +78,9 @@ func toDuration(d time.Duration) *duration.Duration {
 	}
 }
 
-// toServiceProfile returns a Proxy API DestinationProfile, given a
+// toDestinationProfile returns a Proxy API DestinationProfile, given a
 // ServiceProfile.
-func (pt *profileTranslator) toServiceProfile(profile *sp.ServiceProfile) (*pb.DestinationProfile, error) {
+func (pt *profileTranslator) toDestinationProfile(profile *sp.ServiceProfile) (*pb.DestinationProfile, error) {
 	routes := make([]*pb.Route, 0)
 	for _, route := range profile.Spec.Routes {
 		pbRoute, err := toRoute(profile, route)
@@ -100,9 +100,12 @@ func (pt *profileTranslator) toServiceProfile(profile *sp.ServiceProfile) (*pb.D
 		budget.Ttl = toDuration(ttl)
 	}
 	var opaqueProtocol bool
+	fmt.Printf("profile: %v\n", profile.Spec.OpaquePorts)
+	fmt.Printf("pt.port = %d\n", pt.port)
 	if profile.Spec.OpaquePorts != nil {
 		_, opaqueProtocol = profile.Spec.OpaquePorts[pt.port]
 	}
+	fmt.Printf("opaqueProtocol = %v\n", opaqueProtocol)
 	return &pb.DestinationProfile{
 		Routes:             routes,
 		RetryBudget:        budget,
